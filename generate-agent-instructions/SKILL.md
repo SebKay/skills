@@ -1,28 +1,37 @@
 ---
 name: generate-agent-instructions
-description: "Help generate or update the AGENTS.md file for guiding AI coding agents."
+description: "Generate or update AGENTS.md for AI coding agents by extracting project-specific architecture, workflows, conventions, and integration details from the repository. Use when the user asks to create, refresh, or improve AGENTS.md or agent instructions for a codebase."
 ---
 
-Analyze this codebase to generate or update `AGENTS.md` for guiding AI coding agents.
+Generate or update `AGENTS.md` using evidence from the current repository.
 
-**Important**: You can completely ignore the CLAUDE.md file, if it exists, as it's a duplicate of AGENTS.md.
+Ignore `CLAUDE.md` entirely if present.
 
-Do a full deep dive into the codebase so AI agents always have enough context to prevent them making assumptions and mistakes.
+## Workflow
 
-Focus on discovering the essential knowledge that would help an AI agent be immediately productive in this codebase. Consider aspects like:
-- The "big picture" architecture that requires reading multiple files to understand - major components, service boundaries, data flows, and the "why" behind structural decisions
-- Critical developer workflows (builds, tests, debugging) especially commands that aren't obvious from file inspection alone
-- Project-specific conventions and patterns that differ from common practices
-- Integration points, external dependencies, and cross-component communication patterns
+1. Locate existing `AGENTS.md` and treat it as the base when present.
+2. Inspect the codebase deeply enough to understand:
+   - Architecture across multiple files (major components, boundaries, data flow, and structural intent).
+   - Real developer workflows (build, test, lint, run, debug, and release commands).
+   - Project-specific conventions and non-obvious patterns.
+   - Integrations, external services, and cross-component communication.
+3. Extract only discoverable facts from code, config, scripts, and docs.
+4. Merge intelligently with existing `AGENTS.md`: keep still-valid guidance, remove stale guidance, fill important gaps.
+5. Write concise, actionable instructions targeted to future coding agents.
 
-Source existing AI conventions from `AGENTS.md`.
+## Output Requirements
 
-Guidelines:
-- If `AGENTS.md` exists, merge intelligently - preserve valuable content while updating outdated sections
-- Write concise, actionable instructions (~20-50 lines) using markdown structure
-- Include specific examples from the codebase when describing patterns
-- Avoid generic advice ("write tests", "handle errors") - focus on THIS project's specific approaches
-- Document only discoverable patterns, not aspirational practices
-- Reference key files/directories that exemplify important patterns
+- Target roughly 20-50 lines in markdown.
+- Prefer repository-specific guidance over generic best practices.
+- Include concrete examples with key file or directory references.
+- Document current-state behavior only (no aspirational rules).
+- Preserve useful existing conventions from `AGENTS.md` when still accurate.
+- Keep wording imperative and easy to execute.
 
-Update `AGENTS.md` for the user, then ask for feedback on any unclear or incomplete sections to iterate.
+## Quality Bar
+
+- Avoid assumptions that are not supported by repository evidence.
+- Prioritize information that prevents costly mistakes for new agents.
+- Capture the "why" behind important structure when it is inferable.
+
+Update `AGENTS.md`, then ask the user for feedback on unclear or incomplete sections and iterate.
