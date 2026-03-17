@@ -21,7 +21,7 @@ Generate or update `.ai/guidelines/project.md` using evidence from the current L
 
 ## Output Requirements
 
-- Keep the file under 100 lines.
+- Keep the file under 50 lines.
 - Prefer project-specific guidance over generic Laravel advice.
 - Include concrete file or directory references for critical behavior.
 - Prioritize domain rules, side effects, async flows, and failure-sensitive logic.
