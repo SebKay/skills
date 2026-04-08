@@ -27,18 +27,16 @@ Review the current plan like a critical peer review. Find the real problems, the
    - add missing steps
    - split broad steps into atomic work
    - reorder steps to respect dependencies
-   - ensure each task is sized for a single atomic commit
    - add explicit validation tasks
    - document unresolved risks or assumptions when they cannot yet be removed
-6. If the findings show the plan needs a substantial rewrite rather than small corrections, revise the plan with the /planner skill.
-7. Keep plan statuses coherent and ensure only one item is `in_progress`.
-8. After updating the plan, briefly summarize the key corrections and any remaining open risks.
+6. After updating the plan, briefly summarize the key corrections and any remaining open risks.
+7. Revise the plan using the `/planner` skill.
+8. You MUST make an atomic commit for each task in the plan. Update the plan to reflect that.
 
 ## Review Standard
 
 - Prefer fixing the plan over merely describing problems.
 - You MUST make an atomic commit for each task in the plan, and revise the plan if any task is too large or mixed to support that.
-- Escalate to the /planner skill when the plan needs to be restructured, expanded into phases, or rebuilt from weak foundations.
 - Be skeptical of plans that jump straight to implementation.
 - Treat missing validation as a real defect.
 - Treat unclear assumptions as defects unless they are explicitly called out.
