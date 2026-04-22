@@ -1,20 +1,20 @@
 ---
 name: audit-dead-code
-description: Find dead code and cleanup candidates such as unused exports, unreachable branches, orphaned files, stale feature flags, dead registrations, and compatibility layers that no longer have live callers. Use when auditing refactors, bundle-size cleanup, architecture simplification, pre-release cleanup, or requests to find and optionally auto-fix code that is no longer reachable, referenced, or needed.
+description: Find dead code and cleanup candidates such as unused exports, unreachable branches, orphaned files, stale feature flags, dead registrations, and compatibility layers with no live callers. Use when auditing refactors, bundle-size cleanup, architecture simplification, pre-release cleanup, reviewing requests to find unused code or decide what can be deleted, or when deciding whether code can be safely removed or auto-fixed.
 ---
 
 # Audit Dead Code
 
-Audit reachability before deleting anything. Prove a symbol, branch, file, or flag is truly unused, then apply the smallest safe removal.
+Audit reachability before deleting anything. Build a proof chain from live entrypoint to candidate, then apply the smallest safe removal.
 
 ## Follow this workflow
 
-1. Map the codebase entrypoints and dynamic loading surfaces in scope.
+1. Map the codebase entrypoints, public surfaces, and dynamic loading surfaces in scope.
 2. Search for references from public surfaces inward, not just from the candidate itself.
 3. Classify each candidate as unused export, unreachable code, orphaned file, stale feature flag, dead registration, or legacy compatibility path.
-4. Prove it is dead with search evidence plus typecheck, build, tests, or framework conventions where available.
+4. Build a proof chain with code search, config or registry checks, framework conventions, and typecheck, build, or tests where available.
 5. Prioritize findings as `P1` through `P4`.
-6. Auto-fix only local, low-risk removals.
+6. Auto-fix only local, low-risk removals. Leave broader deletions as findings with a concrete removal plan.
 
 ## Map live entrypoints first
 
@@ -23,6 +23,7 @@ Do not start deleting from leaf files without understanding how code can be reac
 Inspect the relevant equivalents of:
 
 - routes, controllers, pages, and API handlers
+- package exports, workspace boundaries, and public modules
 - CLI commands and scheduled jobs
 - queues, workers, and event subscribers
 - dependency-injection or service-container registration
@@ -38,6 +39,8 @@ Dead code claims are weak until these entrypoints are checked.
 
 Start with the language-appropriate equivalents of:
 
+- `import`
+- `require`
 - `export`
 - `public`
 - `function`
@@ -60,15 +63,35 @@ Start with the language-appropriate equivalents of:
 - `TODO remove`
 - `unused`
 - `feature flag`
+- `register`
+- `route`
+- `command`
 
 Also inspect:
 
 - files with no inbound imports
+- modules imported only by other suspected-dead modules
 - modules re-exported but never consumed
+- path aliases, barrels, or registries that may hide the last live reference
 - duplicate implementations behind old/new paths
 - branches gated by flags that are permanently on or off
 - code after unconditional `return`, `throw`, or exhaustive matches
 - adapters kept only for migrations that already finished
+
+## Build a proof chain
+
+Treat "no references found" as a starting signal, not proof.
+
+Prefer at least two independent pieces of evidence when possible:
+
+- repo search shows no live callers after checking aliases, barrels, generated paths, and test-only consumers
+- no route, command, registry, manifest, config, or package export points at the candidate
+- framework conventions and auto-discovery rules do not require it by name or location
+- removing it keeps typecheck, build, and targeted tests green when those checks exist
+- feature-flag source of truth shows the branch is permanently on or off
+- public-surface review finds no external or cross-workspace consumers you can verify
+
+If evidence depends on a system you cannot inspect locally, downgrade the claim to a finding with missing proof instead of deleting.
 
 ## Detect these dead-code patterns
 
@@ -83,7 +106,7 @@ Common signals:
 - public methods required by no interface, subclass, or framework hook
 - package exports left behind after an internal refactor
 
-Verify framework conventions before deleting. Some exports are consumed by reflection, auto-registration, templates, or external packages.
+Verify framework conventions before deleting. Some exports are consumed by reflection, auto-registration, templates, external packages, or sibling workspaces.
 
 ### Unreachable code
 
@@ -109,7 +132,7 @@ Common signals:
 - fixture, test helper, or mock file not referenced by any tests
 - scripts that are no longer invoked by package scripts, CI, cron, or docs
 
-Check for out-of-repo consumers before deleting shared packages or public artifacts.
+Check for out-of-repo or cross-workspace consumers before deleting shared packages or public artifacts.
 
 ### Stale feature flags
 
@@ -147,6 +170,8 @@ Be careful around:
 - DI container resolution by string or class name
 - framework auto-discovery by filename or folder
 - dynamic imports and lazy loading
+- package exports, CLI `bin` entries, or monorepo workspace consumers
+- generated registries, manifests, or codegen that recreate the reference chain
 - templates that reference symbols indirectly
 - code generation inputs and generated outputs
 - public SDK or package APIs consumed outside the repo
@@ -218,7 +243,7 @@ For each finding, include:
 - priority: `P1` to `P4`
 - dead-code type: unused export, unreachable code, orphaned file, stale feature flag, dead registration, or compatibility layer
 - location: file and line or the smallest concrete scope available
-- proof: what references were checked and why the code appears dead
+- proof chain: what references, registries, conventions, and validation checks were used
 - false-positive risk: dynamic loading, external consumers, or unknowns
 - recommended fix
 - whether it is safe to auto-fix now

@@ -1,14 +1,25 @@
 ---
 name: commit
-description: "Create a focused git commit for changes from the unit of work just completed. Use when finishing implementation, fixes, or refactors and the current work should be recorded in version control with a concise message."
+description: "Create a focused git commit for the unit of work just completed. Use when the user asks to commit changes, record finished implementation work, save a fix or refactor to git, or prepare a clean commit from the current branch with a concise message."
 ---
 
-Review the working tree with `git status --short`.
+# Commit Changes
 
-Stage only files relevant to the work just completed.
+Create one focused commit for the work that is ready now.
 
-Write a concise commit subject that describes the change.
+## Workflow
 
-Commit with a single-line message (no body) unless the user explicitly asks for more detail.
+1. Inspect the working tree with `git status --short`.
+2. Identify the files and hunks that belong to the requested unit of work.
+3. Leave unrelated, pre-existing, or uncertain changes unstaged. If the scope is ambiguous, ask before committing.
+4. Stage only the relevant files or hunks.
+5. Review the staged diff with `git diff --cached --stat` and `git diff --cached`.
+6. Write a concise imperative subject line that describes the change.
+7. Create a single commit with no body unless the user explicitly asks for one.
 
-Do not create empty commits.
+## Guardrails
+
+- Prefer the user's requested commit message when they provide one.
+- Do not create empty commits.
+- Do not use `--no-verify`, amend an existing commit, or bundle unrelated changes unless the user explicitly asks.
+- If hooks or commit validation fail, surface the failure instead of bypassing it.

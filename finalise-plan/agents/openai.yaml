@@ -1,0 +1,4 @@
+interface:
+  display_name: "Finalise Plan"
+  short_description: "Pressure-test plans before execution"
+  default_prompt: "Use $finalise-plan to review this plan for missing steps, bad sequencing, weak assumptions, and inadequate validation, then rewrite it into a safer execution plan."
