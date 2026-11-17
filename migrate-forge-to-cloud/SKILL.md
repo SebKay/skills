@@ -1,0 +1,30 @@
+---
+name: migrate-forge-to-cloud
+description: Plan and execute a move of an existing Laravel site from Laravel Forge to Laravel Cloud. Use for migration rehearsals, production data and DNS cutovers, or checks on whether the former Forge server can be retired. Ordinary Cloud deployments are outside this workflow.
+---
+
+# Migrate From Forge to Cloud
+
+Move the requested site and its production state while preserving one authoritative writer. Use `forge` and `cloud` where supported. Check the installed command's help before relying on syntax. Use the documented API or dashboard for an operation the CLI cannot perform or verify. For platform setup, consult the [Laravel migration guide](https://laravel.com/cloud/migrate-forge-cloud) and [Cloud CLI documentation](https://laravel.com/cloud/docs/api/cli.md).
+
+## Verify the Source and Destination
+
+- Resolve the Forge organization, server ID, site ID, canonical hostname, repository, branch and deployed commit. A URL slug or the current working directory can identify a different app. Confirm the source from Forge inventory and its running release. Restore the prior local Forge server context after switching it.
+- Verify the Cloud organization and existing app, environment and resources before creating anything. Choose resource names that reflect their intended use across environments before provisioning. A Cloud Postgres cluster name can be immutable, so verify naming support before promising a rename. Keep production, staging and preview databases separate even when they share a cluster.
+- Inventory the effective production runtime, including PHP and extensions, build and deploy steps, database versions and extensions, queues and pending jobs, scheduler and cron, storage, monitoring, mail, webhooks, OAuth callbacks, certificates and aliases. Check site-level and server-level settings. Note neighboring sites and databases without migrating them unless in scope.
+- Use counts and configuration metadata during discovery. Keep app keys, environment values, credentials, dumps and sessions out of command output, source control and chat. Use the existing access path where possible. Revoke temporary access and remove scratch transfer material once finished.
+- If `forge command` reports an older command's output, use a unique marker and find the exact execution in the [Forge command API](https://github.com/laravel/forge-sdk/blob/4.x/src/Actions/ManagesCommands.php). Check its own status, exit code and output. If a Cloud list call fails, verify known resource IDs with their individual endpoints before retrying a create.
+
+## Rehearse Before Taking Production Down
+
+1. Present the plan after inventory. Identify the DNS owner, intended destination, data in scope, expected maintenance window, what will be verified and how service can be restored before or after Cloud starts accepting writes.
+2. Provision only what the verified workload needs. Port app-specific settings, especially `APP_KEY`, any previous keys and the canonical `APP_URL`. Let attached Cloud resources supply their connection details unless a deliberate override is required. Inspect effective runtime settings and verify key equality without exposing either value. Confirm migrated encrypted data decrypts. Verify the target backup and recovery settings before cutover.
+3. Before deploying or attaching production state, restrict access to the rehearsal and disable its scheduler, queue consumers and other production side effects. Deploy the intended code with the compatible runtime and build steps. Verify the fences after any deploy or restart and before the final transfer. If a rehearsal process ran live, account for its writes and external effects before replacing the rehearsal copy.
+4. Read [Data Transfer](references/data-transfer.md), then rehearse and time the restore on an isolated destination. Verify schema, data, storage, login and app-specific flows on the Cloud test URL. Use app-level checks in addition to build and health checks. Review pending migrations and rehearse when they run relative to the restore.
+5. Prepare the custom domain and DNS records using Cloud's instructions for this hostname. Separate certificate preparation from the traffic switch when supported. If the user owns DNS, coordinate when they will apply the routing record before freezing source writes.
+
+## Cut Over and Verify
+
+Use [Cutover and Retirement](references/cutover-and-retirement.md) before changing live traffic or stopping production writers. The cutover is complete when the public hostname serves from Cloud with valid TLS, the final data is verified, and Cloud's intended workers and scheduler are healthy. Keep Forge from accepting writes during propagation.
+
+If asked whether the old server can be shut down, run the retirement checks in the reference. Report what still runs or remains only on Forge, what could not be observed, and the difference between powering off and permanently deleting the server.
