@@ -16,6 +16,17 @@
 
 If cutover fails before Cloud accepts production writes or emits external effects, keep Cloud fenced and use the tested rollback path within the agreed window, including coordinating any DNS reversal. Once Cloud has new production writes or external effects, prefer fixing Cloud in place. If rollback is necessary, fence both sides and checkpoint Cloud's data. Verify the Forge release can run with the reconciled schema. Bring across new database writes, files and pending jobs, and account for external effects before restoring Forge as the sole writer and reversing DNS. Keep the user informed if the handoff exceeds the window.
 
+## Production Cloud Settings
+
+Apply these defaults for the migrated production environment unless the user specified different settings.
+
+- Set the environment's display name to **Production** and its color to green. Use `cloud environment:update` with `--name=Production --color=green` where supported.
+- Enable the **Scheduler** on the app server at cutover, after Forge's scheduler is fenced. Use `cloud instance:update --uses-scheduler=true` and verify a scheduled run after deployment. [Cloud scheduled tasks](https://laravel.com/cloud/docs/scheduled-tasks.md)
+- Enable **Scale to Zero** with a 300-second idle timeout for the app server, database cluster and cache. For the app and Valkey, the CLI takes minutes. Use `--scale-to-zero=true --scale-to-zero-timeout=5` for the app and `--uses-hibernation=true --hibernation-timeout=5` for Valkey. For supported database clusters, use `--suspend-seconds=300` where the current CLI exposes it, or set the matching timeout in the dashboard. Verify support on the selected tiers and account for other environments using a shared resource. [Cloud compute](https://laravel.com/cloud/docs/compute.md#scale-to-zero) · [Laravel MySQL](https://laravel.com/cloud/docs/resources/databases/laravel-mysql.md#scale-to-zero) · [Laravel Valkey](https://laravel.com/cloud/docs/resources/caches/valkey.md#scale-to-zero)
+- Verify queue behavior during sleep, or record why the app stays awake. Laravel schedules can wake the app, and frequent schedules can keep it awake. Queued jobs require an independent way to run if they must process while the app sleeps. Preserve the existing worker behavior by using managed queues or an always-awake worker if appropriate. Report any unsupported setting or workload conflict. [Scheduled tasks and queues](https://laravel.com/cloud/docs/compute.md#scheduled-tasks-and-queues)
+- After public HTTPS and the affected subdomains are verified, enable **Strict-Transport-Security** in Edge Network settings with `includeSubDomains` and `preload`. Use Cloud's one-year max-age (`--hsts-max-age=31536000 --hsts-include-subdomains=true --hsts-preload=true`) unless the user specifies another value. Verify the header on the public HTTPS hostname. Treat browser preload-list submission as a separate action that requires a request. [Cloud network settings](https://laravel.com/cloud/docs/network.md) · [HSTS preload requirements](https://hstspreload.org/#submission-requirements)
+- Keep **Push to Deploy** disabled during preparation and cutover. Complete any redeploy required by the runtime settings and verify the public site. Then enable it on the intended deployment branch with `cloud environment:update --uses-push-to-deploy=true` and confirm the saved setting.
+
 ## Source Retirement
 
 Verify current conditions before saying that the Forge server can be powered off:
